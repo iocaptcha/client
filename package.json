@@ -1,5 +1,5 @@
 {
-  "name": "api",
+  "name": "@iocaptcha/client",
   "author": "@fuzzbuck",
   "version": "0.0.1",
   "scripts": {
@@ -25,5 +25,26 @@
     "typescript": "^5.1.6",
     "vite": "^4.0.4",
     "webpack": "^5.88.1"
-  }
+  },
+  "description": "![image](https://github.com/iocaptcha/assets/blob/main/logo_blue.png?raw=true)\r # iocaptcha client",
+  "dependencies": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iocaptcha/client.git"
+  },
+  "keywords": [
+    "iocaptcha",
+    "captcha",
+    "iosec",
+    "sec",
+    "security",
+    "antibot",
+    "protection"
+  ],
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/iocaptcha/client/issues"
+  },
+  "homepage": "https://github.com/iocaptcha/client#readme"
 }

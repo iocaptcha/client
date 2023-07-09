@@ -9,8 +9,8 @@ declare global {
 /**
  * @description The main API object used to access:
  *
- * - `[this.captcha]`       the captcha api
- * - `[this.iosec]`         the iosec api
+ * - `[this.captcha]`       the captcha client
+ * - `[this.iosec]`         the iosec client
  * - `[this.CONFIG]`        the API configuration
  */
 export declare const iocom: {
