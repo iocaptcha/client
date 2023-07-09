@@ -1,9 +1,13 @@
+TS / ES6 iocaptcha client.
+Where security reigns, yet privacy remains.
 
 ![image](https://github.com/iocaptcha/assets/blob/main/logo_blue.png?raw=true)
 # iocaptcha client
 
 
 ## Installing
+![image](https://img.shields.io/npm/v/@iocaptcha/client.svg)
+
 ```bash
 npm install @iocaptcha/client
 ```
