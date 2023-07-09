@@ -20,8 +20,8 @@ npm install @iocaptcha/client
 ```js
 import { CONFIG, Iosec, IosecOptions } from "@iocaptcha/client";
 
-// errors will be thrown instead of returned
-CONFIG.throw_errors = true;
+// should throw errors instead of returning them?
+// CONFIG.throw_errors = true;
 
 const iosec = new Iosec();
 
@@ -41,7 +41,15 @@ const options = new IosecOptions("AAAA", "submit-form-1", tokenCallback);
 // The iosec widget is invisible, it will not render anything.
 // However, we require access to the DOM to perform browser-based bot detection, therefore
 // the requirement to provide a DOM element.
-iosec.create(".iosec_box", "iosec1", options);
+let widget = iosec.create(".iosec_box", "iosec1", options);
+
+if (widget instanceof Error) {
+  console.error("Error during widget creation!");
+} else {
+  console.log("Widget created successfully.")
+}
+
+console.log("widget:", widget);
 
 // the new_token function will now be called periodically, with new updated iosec tokens.
 ```
