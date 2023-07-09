@@ -9,7 +9,7 @@
     "build": "tsc",
     "bundle": "webpack --config webpack.config.js"
   },
-  "main": "dist/manager.ts",
+  "main": "dist/tsc/manager.js",
   "types": "src/manager.ts",
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.7",
