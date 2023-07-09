@@ -23,7 +23,8 @@
     "eslint-plugin-promise": "^6.1.1",
     "rollup": "^3.26.2",
     "@rollup/plugin-typescript": "^11.1.2",
-    "@rollup/plugin-terser": "^0.4.3"
+    "@rollup/plugin-terser": "^0.4.3",
+    "typescript": "^5.1.6"
   },
   "description": "ES6/TS client for https://iocaptcha.com - Where security reigns, yet privacy remains.",
   "dependencies": {
