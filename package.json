@@ -1,12 +1,13 @@
 {
   "name": "@iocaptcha/client",
   "author": "@fuzzbuck",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "fix-lint": "eslint src/**/*.ts --fix",
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.js",
+    "publish": "npm publish"
   },
   "main": "dist/cjs/manager.js",
   "module": "dist/esm/manager.js",
