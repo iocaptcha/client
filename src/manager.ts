@@ -1,5 +1,5 @@
 import { Iosec, IosecOptions } from './iosec'
-import { Widget } from './util'
+import { Widget, WidgetType } from './util'
 import { Iocaptcha, CaptchaOptions, scan_and_render } from './iocaptcha'
 
 declare global {
@@ -32,7 +32,7 @@ export const CONFIG = {
   origin: 'https://io-sec.com'
 }
 
-export { Iosec, IosecOptions, Iocaptcha, CaptchaOptions, Widget, scan_and_render }
+export { Iosec, IosecOptions, Iocaptcha, CaptchaOptions, Widget, WidgetType, scan_and_render }
 
 try {
   const G = window
