@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "dist/tsc",
+    "declaration": true,
+    "target": "es2016",
+    "module": "es6",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports" : true,
+    "lib": [
+      "dom",
+      "es2015.promise",
+      "es5"
+    ]
+  }
+}
