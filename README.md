@@ -15,31 +15,31 @@ npm install @iocaptcha/client
 # Usage
 
 ## ES6
+### Using the captcha-less iosec antibot verification
 ```js
-import { Iocaptcha, Iosec } from '@iocaptcha/client';
+import { CONFIG, Iosec, IosecOptions } from "@iocaptcha/client";
 
-// create classes
-const iocaptcha = new Iocaptcha();
+// errors will be thrown instead of returned
+CONFIG.throw_errors = true;
+
 const iosec = new Iosec();
 
-// create a new iocaptcha widget
-// the widget is automatically rendered & started
-const widget = iocaptcha.create(".captcha_box", "{public_key}");
-
-
-// create a new callback for iosec
-function new_token(token) {
-  console.log("received new iosec token: " + token);
+function tokenCallback(token) {
+  console.log("New iosec token: " + token)
+  // You can now use the token to verify the user by
+  // sending the token to your server, and verifying it
+  // through our API.
 }
-// create a new iosec widget
-const widget = iosec.create(".captchaless_box", "{public_key}", new_token);
-// iosec widgets have to be started manually
-widget.start();
+
+// Create options with the tokenCallback function, to receive new tokens.
+// The callback will be called in ~10 seconds, then refresh periodically every ~30 seconds.
+const options = new IosecOptions("AAAA", "form-1", tokenCallback);
+
+// The widget will be created inside the element with the class "iosec_box".
+// The iosec widget is invisible, it will not render anything.
+// However, we require access to the DOM to perform browser-based bot detection, therefore
+// the requirement to provide a DOM element.
+iosec.create(".iosec_box", "iosec1", options);
 
 // the new_token function will now be called periodically, with new updated iosec tokens.
-```
-
-## Typescript
-```ts
-// todo
 ```
