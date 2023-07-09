@@ -35,7 +35,7 @@ export const CONFIG = {
 export { Iosec, IosecOptions, Iocaptcha, CaptchaOptions, Widget, scan_and_render }
 
 try {
-  const G = window ?? global
+  const G = window
   G.config = CONFIG
   G.callbacks = {}
 } catch (_) { }
