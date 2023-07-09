@@ -7,7 +7,7 @@ Where security reigns, yet privacy remains.
 
 ## Installing
 [![image](https://img.shields.io/npm/v/@iocaptcha/client.svg)](https://www.npmjs.com/package/@iocaptcha/client)
-[![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/iocaptcha/client/node.js.yml)](https://github.com/iocaptcha/client/actions)
+[![build CI](https://github.com/iocaptcha/client/actions/workflows/node.js.yml/badge.svg)](https://github.com/iocaptcha/client/actions/workflows/node.js.yml)
 
 ```bash
 npm install @iocaptcha/client
