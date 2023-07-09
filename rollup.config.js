@@ -5,17 +5,17 @@ export default {
   input: 'src/manager.ts',
   output: [
     {
-      dir: 'dist/cjs',
-      format: 'cjs'
+      format: 'cjs',
+      file: "dist/client.cjs"
     },
     {
-      dir: 'dist/esm',
-      format: 'esm'
+      format: 'esm',
+      file: "dist/client.mjs"
     },
     {
-      dir: 'dist/web',
       format: 'iife',
-      name: "iocaptcha_client",
+      name: "client",
+      file: "dist/client.min.js",
       plugins: [terser()]
     }
   ],

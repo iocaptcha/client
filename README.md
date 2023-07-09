@@ -33,7 +33,8 @@ function tokenCallback(token) {
 
 // Create options with the tokenCallback function, to receive new tokens.
 // The callback will be called in ~10 seconds, then refresh periodically every ~30 seconds.
-const options = new IosecOptions("AAAA", "form-1", tokenCallback);
+// Parameters are as follows: (public_key, action, tokenRefreshCallback, errorCallback)
+const options = new IosecOptions("AAAA", "submit-form-1", tokenCallback);
 
 // The widget will be created inside the element with the class "iosec_box".
 // The iosec widget is invisible, it will not render anything.

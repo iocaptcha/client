@@ -8,8 +8,8 @@
     "fix-lint": "eslint src/**/*.ts --fix",
     "build": "rollup -c rollup.config.js"
   },
-  "main": "dist/cjs/manager.js",
-  "module": "dist/esm/manager.js",
+  "main": "dist/client.cjs",
+  "module": "dist/client.mjs",
   "types": "src/manager.ts",
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.7",
