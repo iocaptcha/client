@@ -1,7 +1,7 @@
 {
   "name": "@iocaptcha/client",
   "author": "@fuzzbuck",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "lint": "eslint src/**/*.ts",
@@ -42,7 +42,7 @@
     "antibot",
     "protection"
   ],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/iocaptcha/client/issues"
   },
