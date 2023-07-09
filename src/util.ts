@@ -1,10 +1,13 @@
-import { iocom } from './manager'
+import { CONFIG } from './manager'
+import { IosecOptions } from './iosec'
+import type { CaptchaOptions } from './iocaptcha'
 
-export const DEBUG = true
+export const DEBUG = false
 
 // TODO: add support for multiple origins (eu-prod, us-prod) & fallbacks
-export const ORIGIN = DEBUG ? 'http://127.0.0.1:4173' : 'https://eu-prod.iocaptcha.com'
-export const UI_URL = ORIGIN + '/index.html'
+export function UI_URL (): string {
+  return CONFIG.origin + '/index.html'
+}
 
 export enum WidgetType {
   Iosec,
@@ -13,28 +16,13 @@ export enum WidgetType {
 export class Widget {
   constructor (
     public type: WidgetType,
+    public ops: IosecOptions | CaptchaOptions,
     public formfield: HTMLInputElement,
     public id: string,
-    public iframe: HTMLIFrameElement
+    public iframe: HTMLIFrameElement,
+    public parent: HTMLElement
   ) { }
 
-  /**
-   * Start the widget.
-   * @param action
-   */
-  public start (action: string): undefined | Error {
-    if (this.type === WidgetType.Iosec) {
-      this.iframe.contentWindow?.postMessage(
-        {
-          method: 'start_iosec',
-          action
-        },
-        { targetOrigin: UI_URL }
-      )
-    } else {
-      return error('widget: Attempted to start an iocaptcha widget (which start automatically). Only iosec widgets can be manually started.')
-    }
-  }
 }
 
 export function rnd_str (len: number): string {
@@ -46,6 +34,10 @@ export function rnd_str (len: number): string {
 
 export function error (msg: string): Error {
   const error = new Error(msg)
-  if (iocom.CONFIG.throw_errors) throw error
+  if (CONFIG.throw_errors) throw error
   return error
+}
+
+export function send (iframe: HTMLIFrameElement, data: object): void {
+  iframe.contentWindow?.postMessage(data, { targetOrigin: "*" })
 }

@@ -2,14 +2,14 @@
   "name": "@iocaptcha/client",
   "author": "@fuzzbuck",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "lint": "eslint src/**/*.ts",
     "fix-lint": "eslint src/**/*.ts --fix",
-    "demo": "vite",
-    "build": "tsc",
-    "bundle": "webpack --config webpack.config.js"
+    "build": "rollup -c rollup.config.js"
   },
-  "main": "dist/tsc/manager.js",
+  "main": "dist/cjs/manager.js",
+  "module": "dist/esm/manager.js",
   "types": "src/manager.ts",
   "devDependencies": {
     "@babel/eslint-parser": "^7.22.7",
@@ -21,12 +21,11 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-promise": "^6.1.1",
-    "ts-loader": "^9.4.4",
-    "typescript": "^5.1.6",
-    "vite": "^4.0.4",
-    "webpack": "^5.88.1"
+    "rollup": "^3.26.2",
+    "@rollup/plugin-typescript": "^11.1.2",
+    "@rollup/plugin-terser": "^0.4.3"
   },
-  "description": "![image](https://github.com/iocaptcha/assets/blob/main/logo_blue.png?raw=true)\r # iocaptcha client",
+  "description": "ES6/TS client for https://iocaptcha.com - Where security reigns, yet privacy remains.",
   "dependencies": {
   },
   "repository": {

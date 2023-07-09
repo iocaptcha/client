@@ -1,5 +1,5 @@
-import { error, ORIGIN, rnd_str, UI_URL, Widget, WidgetType } from './util'
-import { iocom } from './manager'
+import { send, error, rnd_str, UI_URL, Widget, WidgetType } from './util'
+import { CONFIG } from './manager'
 
 /**
  * Options data regarding a captcha widget.
@@ -8,8 +8,8 @@ import { iocom } from './manager'
  * @public
  * @property {string} [pubkey] The public key of the endpoint the widget is associated with.
  * @property {string} [action] The action to use for the widget. [login, register, ...] - https://iocaptcha.com/explorer/
- * @property {string} [callback-token-refresh] The callback to call when a new token is generated. The Pass UUID is passed into the callback every few seconds.
- * @property {string} [callback-error] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
+ * @property {string} [callbackTokenRefresh] The callback to call when a new token is generated. The Pass UUID is passed into the callback every few seconds.
+ * @property {string} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
  */
 export class IosecOptions {
   constructor (
@@ -69,7 +69,7 @@ export class Iosec {
 
     if (div === null) {
       const err = new Error('Target element not found.')
-      if (iocom.CONFIG.throw_errors) {
+      if (CONFIG.throw_errors) {
         throw err
       } else {
         return err
@@ -81,7 +81,8 @@ export class Iosec {
   }
 }
 
-export function render (element: HTMLElement): Widget | Error {
+function render (element: HTMLElement): Widget | Error {
+
   const pubkey = element.getAttribute('data-pubkey')
   if (pubkey == null) return error("io-sec: missing data-pubkey attribute, can't continue")
 
@@ -100,41 +101,45 @@ export function render (element: HTMLElement): Widget | Error {
   element.appendChild(formfield)
 
   const iframe = window.document.createElement('iframe')
-  iframe.src = UI_URL
+  iframe.src = UI_URL()
 
   iframe.hidden = true
   element.appendChild(iframe)
 
-  const widget = new Widget(WidgetType.Iosec, formfield, widgetid, iframe)
+  const options = new IosecOptions(pubkey, action, cb, cb_error)
+  const widget = new Widget(WidgetType.Iosec, options, formfield, widgetid, iframe, element)
 
   iframe.onload = () => {
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_pubkey_iosec',
         pubkey
-      },
-      { targetOrigin: UI_URL }
+      }
     )
 
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_widgetid_iosec',
         widgetid
-      },
-      { targetOrigin: UI_URL }
+      }
     )
 
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_action_iosec',
         action
-      },
-      { targetOrigin: UI_URL }
+      }
+    )
+
+    send(iframe,
+      {
+        method: 'start_iosec'
+      }
     )
 
     window.addEventListener('message', (e) => {
       // verify origin url
-      if (e.origin.toString() !== ORIGIN.toString()) {
+      if (e.origin.toString() !== CONFIG.origin.toString()) {
         return
       }
 
@@ -191,7 +196,6 @@ export function new_node (element: HTMLElement, widgetid: string, ops: IosecOpti
   }
 
   element.appendChild(div)
-  render(div)
 
   return div
 }

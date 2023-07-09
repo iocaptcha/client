@@ -1,5 +1,5 @@
-import { error, ORIGIN, rnd_str, UI_URL, Widget, WidgetType } from './util'
-import { iocom } from './manager'
+import { error, rnd_str, send, UI_URL, Widget, WidgetType } from './util'
+import { CONFIG } from './manager'
 
 export function render (element: HTMLElement): Widget | Error {
   const pubkey = element.getAttribute('data-pubkey')
@@ -22,7 +22,7 @@ export function render (element: HTMLElement): Widget | Error {
   element.appendChild(formfield)
 
   const iframe = window.document.createElement('iframe')
-  iframe.src = UI_URL
+  iframe.src = UI_URL()
 
   iframe.style.overflow = 'visible'
   iframe.style.border = 'none'
@@ -32,52 +32,46 @@ export function render (element: HTMLElement): Widget | Error {
 
   if (iframe.contentWindow == null) return error('io-captcha: iframe.contentWindow is null')
 
-  const widget = new Widget(WidgetType.Iocaptcha, formfield, widgetid, iframe)
+  const options = new CaptchaOptions(pubkey, cb, cb_error, theme, font, scale)
+  const widget = new Widget(WidgetType.Iocaptcha, options, formfield, widgetid, iframe, element)
 
   iframe.onload = () => {
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_pubkey',
         pubkey
-      },
-      { targetOrigin: UI_URL }
-    )
+      })
 
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_widgetid',
         widgetid
-      },
-      { targetOrigin: UI_URL }
-    )
+      })
 
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_theme',
         theme
-      },
-      { targetOrigin: UI_URL }
+      }
     )
 
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_scale',
         scale
-      },
-      { targetOrigin: UI_URL }
+      }
     )
 
-    iframe.contentWindow?.postMessage(
+    send(iframe,
       {
         method: 'set_font',
         font
-      },
-      { targetOrigin: UI_URL }
+      }
     )
 
     window.addEventListener('message', (e) => {
       // verify origin url
-      if (e.origin.toString() !== ORIGIN.toString()) {
+      if (e.origin.toString() !== CONFIG.origin.toString()) {
         return
       }
 
@@ -142,7 +136,7 @@ function resizeIframe (iframe: HTMLIFrameElement, h: string, w: string) {
  * <br>
  * The method is only provided for extremely rare edge cases.
  */
-export function scan_and_render () {
+export function scan_and_render (): undefined {
   const divs = window.document.getElementsByClassName('io-captcha') as HTMLCollectionOf<HTMLElement>
   for (let i = 0; i < divs.length; i++) {
     const div = divs[i]
@@ -188,11 +182,10 @@ export function new_node (element: HTMLElement, widgetid: string, ops: CaptchaOp
  * @constructor
  * @public
  * @property {string} [pubkey] The public key of the endpoint the widget is associated with.
- * @property {string} [callback-solve] The callback to call when the widget is solved. The Pass UUID is passed into the callback.
- * @property {string} [callback-expire] The callback to call when the current Pass UUID expires. This means the user needs to solve the captcha again.
- * @property {string} [callback-error] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
+ * @property {string} [callbackSolve] The callback to call when the widget is solved. The Pass UUID is passed into the callback.
+ * @property {string} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
  * @property {string} [theme] The theme of the widget. [light, dark, ...] - https://iocaptcha.com/explorer/
- * @property {string} [text-style] The text style of the widget. [roboto, mono, ...] - https://iocaptcha.com/explorer/
+ * @property {string} [font] The font style of the widget. [roboto, mono, ...] - https://iocaptcha.com/explorer/
  * @property {number} [scale] The scale of the widget. [float]
  */
 export class CaptchaOptions {
@@ -268,12 +261,7 @@ export class Iocaptcha {
     const div = document.querySelector(target) as HTMLElement
 
     if (div === null) {
-      const err = new Error('Target element not found.')
-      if (iocom.CONFIG.throw_errors) {
-        throw err
-      } else {
-        return err
-      }
+      return error('Target element not found.')
     }
 
     const node = new_node(div, id, options)
@@ -282,5 +270,5 @@ export class Iocaptcha {
 }
 
 window.document.addEventListener('DOMContentLoaded', () => {
-  if (iocom.CONFIG.scan_immediately) scan_and_render()
+  if (CONFIG.scan_immediately) scan_and_render()
 })
