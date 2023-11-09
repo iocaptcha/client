@@ -6,30 +6,18 @@ import { CONFIG } from './manager'
  * @class
  * @constructor
  * @public
- * @property {string} [pubkey] The public key of the endpoint the widget is associated with.
- * @property {string} [action] The action to use for the widget. [login, register, ...] - https://iocaptcha.com/explorer/
- * @property {string} [callbackTokenRefresh] The callback to call when a new token is generated. The Pass UUID is passed into the callback every few seconds.
- * @property {string} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
+ * @property {string} [public_key] The public key of the endpoint the widget is associated with. (https://io.software/endpoints)
+ * @property {string} [action] The action to use for the widget. [login, register, ...]
+ * @property {function} [callbackTokenRefresh] The callback to call when a new token is generated. The Pass UUID is passed into the callback every few seconds.
+ * @property {function} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
  */
 export class IosecOptions {
   constructor (
-    public pubkey: string,
+    public public_key: string,
     public action: string,
     public callbackTokenRefresh: undefined | ((data: any) => null),
     public callbackError: undefined | ((data: any) => null)
-  ) {
-    /**
-     * The pubkey to use for the widget. [public key, https://iocaptcha.com/dashboard/endpoints]
-     * @type {string}
-     */
-    this.pubkey = pubkey
-
-    /**
-     * The action to use for the widget. [login, register, ...]
-     * @type {string}
-     */
-    this.action = action
-  }
+  ) { }
 }
 
 const EVENT_TYPES = ['new_pass_uuid']
@@ -39,7 +27,7 @@ export class Iosec {
   /**
    * Connect an event to this widget.
    * Possible events:
-   * - `new_pass_uuid` - called when a new pass_uuid is set internally
+   * - `new_pass_uuid` - called when a new pass_uuid (token) is generated, same as tokenCallback
    * @param event
    * @param callback
    */
@@ -53,8 +41,7 @@ export class Iosec {
 
   /**
    * @param {string} [target] The target query selector that the new widget will be placed in. ['.wrapper', '#captcha-container', ...]
-   * @param {string|undefined} [id] The id that will be assigned to this widget.
-   * @param {IosecOptions|string} [options] The options to use for this widget, or a string containing the public key for an endpoint.
+   * @param {IosecOptions} [options] The options to use for this widget.
    * <br>
    * @returns {Iosec|Error} `[this]` The captcha object, or an error if the widget could not be created. [assuming CONFIG.throw_errors is disabled]
    * @description Creates a new iosec widget that is appended to the target element.
@@ -62,8 +49,8 @@ export class Iosec {
    * @example
    *
    */
-  create (target: string, id: string, options: IosecOptions): Widget | Error {
-    id = id ?? rnd_str(16)
+  execute_with_implicit_dom (target: string, options: IosecOptions): Widget | Error {
+    const id = rnd_str(16)
 
     const div = document.querySelector(target) as HTMLElement
 
@@ -79,18 +66,24 @@ export class Iosec {
     const node = new_node(div, id, options)
     return render(node)
   }
+
+  execute (options: IosecOptions): Widget | Error {
+    const id = rnd_str(16)
+
+    const node = new_node(document.body, id, options)
+    return render(node)
+  }
 }
 
 function render (element: HTMLElement): Widget | Error {
-
   const pubkey = element.getAttribute('data-pubkey')
   if (pubkey == null) return error("io-sec: missing data-pubkey attribute, can't continue")
 
   const callback: string = element.getAttribute('data-callback-token-refresh') ?? ''
-  const cb: undefined | ((data: any) => null) = window.callbacks[callback]
+  const cb: undefined | ((data: any) => null) = window.ioclient_callbacks[callback]
 
   const callback_error: string = element.getAttribute('data-callback-error') ?? ''
-  const cb_error: undefined | ((data: any) => null) = window.callbacks[callback_error]
+  const cb_error: undefined | ((data: any) => null) = window.ioclient_callbacks[callback_error]
 
   const widgetid = element.getAttribute('data-widgetid') ?? rnd_str(5)
   const action = element.getAttribute('data-action') ?? 'unspecified'
@@ -107,7 +100,7 @@ function render (element: HTMLElement): Widget | Error {
   element.appendChild(iframe)
 
   const options = new IosecOptions(pubkey, action, cb, cb_error)
-  const widget = new Widget(WidgetType.Iosec, options, formfield, widgetid, iframe, element)
+  const widget = new Widget(WidgetType.Iosec, formfield, widgetid, iframe, element)
 
   iframe.onload = () => {
     send(iframe,
@@ -170,6 +163,8 @@ function render (element: HTMLElement): Widget | Error {
           },
           { targetOrigin: '*' }
         )
+      } else if (method === 'end') {
+        widget.end()
       }
     })
   }
@@ -182,16 +177,16 @@ export function new_node (element: HTMLElement, widgetid: string, ops: IosecOpti
   div.className = 'io-sec'
 
   div.setAttribute('data-widgetid', widgetid)
-  div.setAttribute('data-pubkey', ops.pubkey)
+  div.setAttribute('data-pubkey', ops.public_key)
   div.setAttribute('data-action', ops.action)
   if (ops.callbackTokenRefresh != null) {
     const id = rnd_str(16)
-    window.callbacks[id] = ops.callbackTokenRefresh
+    window.ioclient_callbacks[id] = ops.callbackTokenRefresh
     div.setAttribute('data-callback-token-refresh', id)
   }
   if (ops.callbackError != null) {
     const id = rnd_str(16)
-    window.callbacks[id] = ops.callbackError
+    window.ioclient_callbacks[id] = ops.callbackError
     div.setAttribute('data-callback-error', id)
   }
 

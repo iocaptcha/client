@@ -1,8 +1,6 @@
 import { CONFIG } from './manager'
-import { IosecOptions } from './iosec'
+import { type IosecOptions } from './iosec'
 import type { CaptchaOptions } from './iocaptcha'
-
-export const DEBUG = false
 
 // TODO: add support for multiple origins (eu-prod, us-prod) & fallbacks
 export function UI_URL (): string {
@@ -16,13 +14,17 @@ export enum WidgetType {
 export class Widget {
   constructor (
     public type: WidgetType,
-    public ops: IosecOptions | CaptchaOptions,
     public formfield: HTMLInputElement,
     public id: string,
     public iframe: HTMLIFrameElement,
     public parent: HTMLElement
   ) { }
 
+  public end () {
+    // unload iframe
+    console.log('ending') // todo remove
+    this.iframe.remove()
+  }
 }
 
 export function rnd_str (len: number): string {
@@ -39,5 +41,5 @@ export function error (msg: string): Error {
 }
 
 export function send (iframe: HTMLIFrameElement, data: object): void {
-  iframe.contentWindow?.postMessage(data, { targetOrigin: "*" })
+  iframe.contentWindow?.postMessage(data, { targetOrigin: '*' })
 }

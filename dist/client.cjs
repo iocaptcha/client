@@ -4,19 +4,23 @@
 function UI_URL() {
     return CONFIG.origin + '/index.html';
 }
-var WidgetType;
+exports.WidgetType = void 0;
 (function (WidgetType) {
     WidgetType[WidgetType["Iosec"] = 0] = "Iosec";
     WidgetType[WidgetType["Iocaptcha"] = 1] = "Iocaptcha";
-})(WidgetType || (WidgetType = {}));
+})(exports.WidgetType || (exports.WidgetType = {}));
 class Widget {
-    constructor(type, ops, formfield, id, iframe, parent) {
+    constructor(type, formfield, id, iframe, parent) {
         this.type = type;
-        this.ops = ops;
         this.formfield = formfield;
         this.id = id;
         this.iframe = iframe;
         this.parent = parent;
+    }
+    end() {
+        // unload iframe
+        console.log('ending'); // todo remove
+        this.iframe.remove();
     }
 }
 function rnd_str(len) {
@@ -33,7 +37,7 @@ function error(msg) {
 }
 function send(iframe, data) {
     var _a;
-    (_a = iframe.contentWindow) === null || _a === void 0 ? void 0 : _a.postMessage(data, { targetOrigin: "*" });
+    (_a = iframe.contentWindow) === null || _a === void 0 ? void 0 : _a.postMessage(data, { targetOrigin: '*' });
 }
 
 /**
@@ -41,27 +45,17 @@ function send(iframe, data) {
  * @class
  * @constructor
  * @public
- * @property {string} [pubkey] The public key of the endpoint the widget is associated with.
- * @property {string} [action] The action to use for the widget. [login, register, ...] - https://iocaptcha.com/explorer/
- * @property {string} [callbackTokenRefresh] The callback to call when a new token is generated. The Pass UUID is passed into the callback every few seconds.
- * @property {string} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
+ * @property {string} [public_key] The public key of the endpoint the widget is associated with. (https://io.software/endpoints)
+ * @property {string} [action] The action to use for the widget. [login, register, ...]
+ * @property {function} [callbackTokenRefresh] The callback to call when a new token is generated. The Pass UUID is passed into the callback every few seconds.
+ * @property {function} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
  */
 class IosecOptions {
-    constructor(pubkey, action, callbackTokenRefresh, callbackError) {
-        this.pubkey = pubkey;
+    constructor(public_key, action, callbackTokenRefresh, callbackError) {
+        this.public_key = public_key;
         this.action = action;
         this.callbackTokenRefresh = callbackTokenRefresh;
         this.callbackError = callbackError;
-        /**
-         * The pubkey to use for the widget. [public key, https://iocaptcha.com/dashboard/endpoints]
-         * @type {string}
-         */
-        this.pubkey = pubkey;
-        /**
-         * The action to use for the widget. [login, register, ...]
-         * @type {string}
-         */
-        this.action = action;
     }
 }
 const EVENT_TYPES = ['new_pass_uuid'];
@@ -72,7 +66,7 @@ class Iosec {
     /**
      * Connect an event to this widget.
      * Possible events:
-     * - `new_pass_uuid` - called when a new pass_uuid is set internally
+     * - `new_pass_uuid` - called when a new pass_uuid (token) is generated, same as tokenCallback
      * @param event
      * @param callback
      */
@@ -86,8 +80,7 @@ class Iosec {
     }
     /**
      * @param {string} [target] The target query selector that the new widget will be placed in. ['.wrapper', '#captcha-container', ...]
-     * @param {string|undefined} [id] The id that will be assigned to this widget.
-     * @param {IosecOptions|string} [options] The options to use for this widget, or a string containing the public key for an endpoint.
+     * @param {IosecOptions} [options] The options to use for this widget.
      * <br>
      * @returns {Iosec|Error} `[this]` The captcha object, or an error if the widget could not be created. [assuming CONFIG.throw_errors is disabled]
      * @description Creates a new iosec widget that is appended to the target element.
@@ -95,8 +88,8 @@ class Iosec {
      * @example
      *
      */
-    create(target, id, options) {
-        id = id !== null && id !== void 0 ? id : rnd_str(16);
+    execute_with_implicit_dom(target, options) {
+        const id = rnd_str(16);
         const div = document.querySelector(target);
         if (div === null) {
             const err = new Error('Target element not found.');
@@ -110,6 +103,11 @@ class Iosec {
         const node = new_node$1(div, id, options);
         return render$1(node);
     }
+    execute(options) {
+        const id = rnd_str(16);
+        const node = new_node$1(document.body, id, options);
+        return render$1(node);
+    }
 }
 function render$1(element) {
     var _a, _b, _c, _d;
@@ -117,9 +115,9 @@ function render$1(element) {
     if (pubkey == null)
         return error("io-sec: missing data-pubkey attribute, can't continue");
     const callback = (_a = element.getAttribute('data-callback-token-refresh')) !== null && _a !== void 0 ? _a : '';
-    const cb = window.callbacks[callback];
+    const cb = window.ioclient_callbacks[callback];
     const callback_error = (_b = element.getAttribute('data-callback-error')) !== null && _b !== void 0 ? _b : '';
-    const cb_error = window.callbacks[callback_error];
+    const cb_error = window.ioclient_callbacks[callback_error];
     const widgetid = (_c = element.getAttribute('data-widgetid')) !== null && _c !== void 0 ? _c : rnd_str(5);
     const action = (_d = element.getAttribute('data-action')) !== null && _d !== void 0 ? _d : 'unspecified';
     const formfield = window.document.createElement('input');
@@ -129,8 +127,7 @@ function render$1(element) {
     iframe.src = UI_URL();
     iframe.hidden = true;
     element.appendChild(iframe);
-    const options = new IosecOptions(pubkey, action, cb, cb_error);
-    const widget = new Widget(WidgetType.Iosec, options, formfield, widgetid, iframe, element);
+    const widget = new Widget(exports.WidgetType.Iosec, formfield, widgetid, iframe, element);
     iframe.onload = () => {
         send(iframe, {
             method: 'set_pubkey_iosec',
@@ -179,6 +176,9 @@ function render$1(element) {
                     method: 'hello_ui'
                 }, { targetOrigin: '*' });
             }
+            else if (method === 'end') {
+                widget.end();
+            }
         });
     };
     return widget;
@@ -187,16 +187,16 @@ function new_node$1(element, widgetid, ops) {
     const div = document.createElement('div');
     div.className = 'io-sec';
     div.setAttribute('data-widgetid', widgetid);
-    div.setAttribute('data-pubkey', ops.pubkey);
+    div.setAttribute('data-pubkey', ops.public_key);
     div.setAttribute('data-action', ops.action);
     if (ops.callbackTokenRefresh != null) {
         const id = rnd_str(16);
-        window.callbacks[id] = ops.callbackTokenRefresh;
+        window.ioclient_callbacks[id] = ops.callbackTokenRefresh;
         div.setAttribute('data-callback-token-refresh', id);
     }
     if (ops.callbackError != null) {
         const id = rnd_str(16);
-        window.callbacks[id] = ops.callbackError;
+        window.ioclient_callbacks[id] = ops.callbackError;
         div.setAttribute('data-callback-error', id);
     }
     element.appendChild(div);
@@ -209,9 +209,9 @@ function render(element) {
     if (pubkey == null)
         return error("io-captcha: missing data-pubkey attribute, can't continue");
     const callback = (_a = element.getAttribute('data-callback-solve')) !== null && _a !== void 0 ? _a : '';
-    const cb = window.callbacks[callback];
+    const cb = window.ioclient_callbacks[callback];
     const callback_error = (_b = element.getAttribute('data-callback-error')) !== null && _b !== void 0 ? _b : '';
-    const cb_error = window.callbacks[callback_error];
+    const cb_error = window.ioclient_callbacks[callback_error];
     const widgetid = (_c = element.getAttribute('data-widgetid')) !== null && _c !== void 0 ? _c : rnd_str(5);
     const theme = (_d = element.getAttribute('data-theme')) !== null && _d !== void 0 ? _d : 'light';
     const scale = parseFloat((_e = element.getAttribute('data-scale')) !== null && _e !== void 0 ? _e : '1.0');
@@ -227,8 +227,7 @@ function render(element) {
     element.appendChild(iframe);
     if (iframe.contentWindow == null)
         return error('io-captcha: iframe.contentWindow is null');
-    const options = new CaptchaOptions(pubkey, cb, cb_error, theme, font, scale);
-    const widget = new Widget(WidgetType.Iocaptcha, options, formfield, widgetid, iframe, element);
+    const widget = new Widget(exports.WidgetType.Iocaptcha, formfield, widgetid, iframe, element);
     iframe.onload = () => {
         send(iframe, {
             method: 'set_pubkey',
@@ -324,15 +323,15 @@ function new_node(element, widgetid, ops) {
     const div = document.createElement('div');
     div.className = 'io-captcha';
     div.setAttribute('data-widgetid', widgetid);
-    div.setAttribute('data-pubkey', ops.pubkey);
+    div.setAttribute('data-pubkey', ops.public_key);
     if (ops.callbackSolve !== null) {
         const id = rnd_str(16);
-        window.callbacks[id] = ops.callbackSolve;
+        window.ioclient_callbacks[id] = ops.callbackSolve;
         div.setAttribute('data-callback-solve', id);
     }
     if (ops.callbackError !== null) {
         const id = rnd_str(16);
-        window.callbacks[id] = ops.callbackError;
+        window.ioclient_callbacks[id] = ops.callbackError;
         div.setAttribute('data-callback-error', id);
     }
     div.setAttribute('data-theme', ops.theme);
@@ -347,7 +346,7 @@ function new_node(element, widgetid, ops) {
  * @class
  * @constructor
  * @public
- * @property {string} [pubkey] The public key of the endpoint the widget is associated with.
+ * @property {string} [public_key] The public key of the endpoint the widget is associated with.
  * @property {string} [callbackSolve] The callback to call when the widget is solved. The Pass UUID is passed into the callback.
  * @property {string} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
  * @property {string} [theme] The theme of the widget. [light, dark, ...] - https://iocaptcha.com/explorer/
@@ -355,8 +354,8 @@ function new_node(element, widgetid, ops) {
  * @property {number} [scale] The scale of the widget. [float]
  */
 class CaptchaOptions {
-    constructor(pubkey, callbackSolve, callbackError, theme, font, scale) {
-        this.pubkey = pubkey;
+    constructor(public_key, callbackSolve, callbackError, theme, font, scale) {
+        this.public_key = public_key;
         this.callbackSolve = callbackSolve;
         this.callbackError = callbackError;
         this.theme = theme;
@@ -366,7 +365,7 @@ class CaptchaOptions {
          * The pubkey to use for the widget. [public captcha key, https://iocaptcha.com/dashboard/endpoints]
          * @type {string}
          */
-        this.pubkey = pubkey;
+        this.public_key = public_key;
         /**
          * The theme to use for the widget. [light, dark, ...]
          * @type {string}
@@ -443,18 +442,18 @@ const CONFIG = {
      */
     throw_errors: false,
     /**
-     * Whether to immediately scan the page for iocaptcha & iosec elements, or wait for the user to call `iocom.scan()`. (Default: true)
+     * Whether to immediately scan the page for iocaptcha & iosec elements. (Default: true)
      */
     scan_immediately: true,
     /**
      * Custom ORIGIN UI url
      */
-    origin: 'https://io-sec.com'
+    origin: 'https://hook.io.software'
 };
 try {
-    const G = window !== null && window !== void 0 ? window : global;
-    G.config = CONFIG;
-    G.callbacks = {};
+    const G = window;
+    G.ioclient_callbacks = {};
+    G.iosec = new Iosec();
 }
 catch (_) { }
 

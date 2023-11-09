@@ -5,8 +5,8 @@ import { Iocaptcha, CaptchaOptions, scan_and_render } from './iocaptcha'
 declare global {
   // eslint-disable-next-line no-unused-vars
   interface Window {
-    config: object
-    callbacks: Record<string, undefined | ((data: any) => null)>
+    ioclient_callbacks: Record<string, undefined | ((data: any) => null)>
+    iosec: Iosec
   }
 }
 
@@ -23,19 +23,19 @@ export const CONFIG = {
    */
   throw_errors: false,
   /**
-   * Whether to immediately scan the page for iocaptcha & iosec elements, or wait for the user to call `iocom.scan()`. (Default: true)
+   * Whether to immediately scan the page for iocaptcha & iosec elements. (Default: true)
    */
   scan_immediately: true,
   /**
    * Custom ORIGIN UI url
    */
-  origin: 'https://io-sec.com'
+  origin: 'https://hook.io.software'
 }
 
 export { Iosec, IosecOptions, Iocaptcha, CaptchaOptions, Widget, WidgetType, scan_and_render }
 
 try {
   const G = window
-  G.config = CONFIG
-  G.callbacks = {}
+  G.ioclient_callbacks = {}
+  G.iosec = new Iosec()
 } catch (_) { }

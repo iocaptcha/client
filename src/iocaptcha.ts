@@ -6,10 +6,10 @@ export function render (element: HTMLElement): Widget | Error {
   if (pubkey == null) return error("io-captcha: missing data-pubkey attribute, can't continue")
 
   const callback = element.getAttribute('data-callback-solve') ?? ''
-  const cb: undefined | ((data: any) => null) = window.callbacks[callback]
+  const cb: undefined | ((data: any) => null) = window.ioclient_callbacks[callback]
 
   const callback_error = element.getAttribute('data-callback-error') ?? ''
-  const cb_error: undefined | ((data: any) => null) = window.callbacks[callback_error]
+  const cb_error: undefined | ((data: any) => null) = window.ioclient_callbacks[callback_error]
 
   const widgetid = element.getAttribute('data-widgetid') ?? rnd_str(5)
   const theme = element.getAttribute('data-theme') ?? 'light'
@@ -33,7 +33,7 @@ export function render (element: HTMLElement): Widget | Error {
   if (iframe.contentWindow == null) return error('io-captcha: iframe.contentWindow is null')
 
   const options = new CaptchaOptions(pubkey, cb, cb_error, theme, font, scale)
-  const widget = new Widget(WidgetType.Iocaptcha, options, formfield, widgetid, iframe, element)
+  const widget = new Widget(WidgetType.Iocaptcha, formfield, widgetid, iframe, element)
 
   iframe.onload = () => {
     send(iframe,
@@ -155,15 +155,15 @@ export function new_node (element: HTMLElement, widgetid: string, ops: CaptchaOp
   div.className = 'io-captcha'
 
   div.setAttribute('data-widgetid', widgetid)
-  div.setAttribute('data-pubkey', ops.pubkey)
+  div.setAttribute('data-pubkey', ops.public_key)
   if (ops.callbackSolve !== null) {
     const id = rnd_str(16)
-    window.callbacks[id] = ops.callbackSolve
+    window.ioclient_callbacks[id] = ops.callbackSolve
     div.setAttribute('data-callback-solve', id)
   }
   if (ops.callbackError !== null) {
     const id = rnd_str(16)
-    window.callbacks[id] = ops.callbackError
+    window.ioclient_callbacks[id] = ops.callbackError
     div.setAttribute('data-callback-error', id)
   }
   div.setAttribute('data-theme', ops.theme)
@@ -181,7 +181,7 @@ export function new_node (element: HTMLElement, widgetid: string, ops: CaptchaOp
  * @class
  * @constructor
  * @public
- * @property {string} [pubkey] The public key of the endpoint the widget is associated with.
+ * @property {string} [public_key] The public key of the endpoint the widget is associated with.
  * @property {string} [callbackSolve] The callback to call when the widget is solved. The Pass UUID is passed into the callback.
  * @property {string} [callbackError] The callback to call when an error occurs. The recommended course of action in this case is to refresh the page.
  * @property {string} [theme] The theme of the widget. [light, dark, ...] - https://iocaptcha.com/explorer/
@@ -190,7 +190,7 @@ export function new_node (element: HTMLElement, widgetid: string, ops: CaptchaOp
  */
 export class CaptchaOptions {
   constructor (
-    public pubkey: string,
+    public public_key: string,
     public callbackSolve: undefined | ((data: any) => null),
     public callbackError: undefined | ((data: any) => null),
     public theme: string,
@@ -201,7 +201,7 @@ export class CaptchaOptions {
      * The pubkey to use for the widget. [public captcha key, https://iocaptcha.com/dashboard/endpoints]
      * @type {string}
      */
-    this.pubkey = pubkey
+    this.public_key = public_key
 
     /**
      * The theme to use for the widget. [light, dark, ...]

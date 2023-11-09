@@ -29,27 +29,62 @@ function tokenCallback(token) {
   console.log("New iosec token: " + token)
   // You can now use the token to verify the user by
   // sending the token to your server, and verifying it
-  // through our API.
+  // using the server-side SDK (https://npmjs.com/package/@iocaptcha/server)
+  // or by direct HTTP api calls (https://docs.io.software/api)
 }
 
 // Create options with the tokenCallback function, to receive new tokens.
-// The callback will be called in ~10 seconds, then refresh periodically every ~30 seconds.
-// Parameters are as follows: (public_key, action, tokenRefreshCallback, errorCallback)
-const options = new IosecOptions("AAAA", "submit-form-1", tokenCallback);
+// The callback will be called within ~3 seconds (depending on endpoint difficulty).
+const options = {
+  public_key: "AAAA",
+  action: "submit-form-1",
+  callbackTokenRefresh: tokenCallback,
+  callbackError: (err) => {
+    console.error("Error during token refresh:", err);
+  }
+}
 
-// The widget will be created inside the element with the class "iosec_box".
-// The iosec widget is invisible, it will not render anything.
-// However, we require access to the DOM to perform browser-based bot detection, therefore
-// the requirement to provide a DOM element.
-let widget = iosec.create(".iosec_box", "iosec1", options);
+// Executes the iosec widget and starts the process
+let widget = iosec.execute(options);
 
+// OPTIONAL: Verify that no errors happened during execution
 if (widget instanceof Error) {
   console.error("Error during widget creation!");
 } else {
   console.log("Widget created successfully.")
 }
 
-console.log("widget:", widget);
 
-// the new_token function will now be called periodically, with new updated iosec tokens.
+// the tokenCallback function will now be called within a few seconds, depending on the endpoint difficulty.
+```
+
+### Implicit rendering
+```js
+// Sometimes, you might want to render the widget yourself in a pre-specified DOM element.
+// This can be done by using the execute_with_implicit_dom function.
+
+<body>
+    <p>iosecure will be rendered in the box below, however it will not be visible.</p>
+    <div class="iosec"></div>
+</body>
+
+iosec.execute_with_implicit_dom(".iosec", options);
+```
+
+### Web (UMD) usage
+The UMD version does not differ from the ES6 version, except a global "iosec" object is added to the global scope.
+The size of the UMD version is approx. ~3kb (minified + gzipped).
+```html
+<script src="https://cdn.jsdelivr.net/npm/@iocaptcha/client/dist/client.min.js" async></script>
+<script>
+    // The iosec object is now available in the global scope.
+    // You can use it as you would use the ES6 version.
+    iosec.execute({
+      public_key: "AAAA",
+      action: "submit-form-1",
+      callbackTokenRefresh: (token) => {
+        console.log("New token:", token);
+      }
+    });
+</script>
 ```
